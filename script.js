@@ -206,12 +206,12 @@ function drawTable({
             tr.appendChild(th);
             if (count % 2 == 0) {
                 th = document.createElement('th');
-                th.textContent = "YoY Delta%";
+                th.textContent = "YoY%";
                 tr.appendChild(th);
             }
             if (years.length == i + 1 && years.length % 2 != 0) {
                 th = document.createElement('th');
-                th.textContent = "YoY Delta%";
+                th.textContent = "YoY%";
                 tr.appendChild(th);
             }
             count++;
@@ -227,21 +227,23 @@ function drawTable({
             let color = "", arrow = "";
             for (let i = 0; i < years.length; i++) {
                 td = document.createElement('td');
-                td.textContent = table_data[years[i]][month];
+                td.textContent = table_data[years[i]][month] == 0 ? "-" : table_data[years[i]][month];
                 tr.appendChild(td);
                 if (count % 2 == 0) {
                     td = document.createElement('td');
                     let data1 = table_data[years[i - 1]][month];
                     let data2 = table_data[years[i]][month];
                     if (data2 == 0) {
-                        td.textContent = "-100%";
-                        color = "red";
-                        arrow = down;
+                        td.textContent = "-";
+                        // color = "red";
+                        // arrow = down;
                     }
                     else {
                         let per = ((data2 - data1) / data2 * 100).toFixed(0);
                         td.textContent = per + "%";
-                        if (per > 0) {
+                        if (per == 100) {
+                            td.textContent = "-";
+                        } else if (per > 0) {
                             color = "green";
                             arrow = up;
                         } else if (per < 0) {
@@ -263,14 +265,16 @@ function drawTable({
                         let data1 = table_data[years[i - 1]][month];
                         let data2 = table_data[years[i]][month];
                         if (data2 == 0) {
-                            td.textContent = "-100%";
-                            color = "red";
-                            arrow = down;
+                            td.textContent = "-";
+                            // color = "red";
+                            // arrow = down;
                         }
                         else {
                             let per = ((data2 - data1) / data2 * 100).toFixed(0);
                             td.textContent = per + "%";
-                            if (per > 0) {
+                            if (per == 100) {
+                                td.textContent = "-";
+                            } else if (per > 0) {
                                 color = "green";
                                 arrow = up;
                             } else if (per < 0) {
