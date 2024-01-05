@@ -7,8 +7,8 @@ const submitBtn = document.querySelector('.submit-btn');
 const countries_div = document.querySelector('.countries .inner-wrap');
 const countries_btn = document.querySelector('.country-btn');
 
-const products_div = document.querySelector('.products .inner-wrap');
-const products_btn = document.querySelector('.product-btn');
+const model_div = document.querySelector('.models .inner-wrap');
+const model_btn = document.querySelector('.model-btn');
 
 const storages_div = document.querySelector('.storages .inner-wrap');
 const storages_btn = document.querySelector('.storage-btn');
@@ -88,11 +88,24 @@ fetch(file_path).then(res => res.text()).then(data => {
     const countries = [...new Set(dataArr.map(row => row[0]).sort())];
     addValuesToBtn({ arr: countries, btn: countries_btn, div_class: '.countries', div: countries_div });
 
-    const product = [...new Set(dataArr.map(row => row[5].toLowerCase()))];
-    addValuesToBtn({ arr: product, btn: products_btn, div_class: '.products', div: products_div });
+    const model = [...new Set(dataArr.map(row => row[5].toLowerCase()))];
+    addValuesToBtn({
+        arr: model.map(m => {
+            let word_1 = "";
+            m.split(" ").forEach((word, index) => {
+                if (word.startsWith("i")) {
+                    word_1 += word + " ";
+                } else {
+                    word_1 += word.charAt(0).toUpperCase() + word.slice(1) + " ";
+                }
+            })
+            return word_1;
 
-    products_btn.addEventListener('click', (e) => {
-        const product = document.querySelectorAll('.products #Categories .inner-wrap input:checked');
+        }), btn: model_btn, div_class: '.models', div: model_div
+    });
+
+    model_btn.addEventListener('click', (e) => {
+        const product = document.querySelectorAll('.models #Categories .inner-wrap input:checked');
         var val = product[0]?.value;
         if (val) {
             const storage = [...new Set(dataArr.filter(row => row[5].toLowerCase() == val).map(row => row[6]).sort())];
@@ -100,8 +113,8 @@ fetch(file_path).then(res => res.text()).then(data => {
             addValuesToBtn({ arr: storage, btn: storages_btn, div_class: '.storages', div: storages_div });
         }
     });
-    products_div.addEventListener('mouseleave', (e) => {
-        const product = document.querySelectorAll('.products #Categories .inner-wrap input:checked');
+    model_div.addEventListener('mouseleave', (e) => {
+        const product = document.querySelectorAll('.models #Categories .inner-wrap input:checked');
         var val = product[0]?.value;
         if (val) {
             const storage = [...new Set(dataArr.filter(row => row[5].toLowerCase() == val).map(row => row[6]).sort())];
@@ -124,29 +137,34 @@ fetch(file_path).then(res => res.text()).then(data => {
     submitBtn.addEventListener('click', (e) => {
         // container_table.innerHTML = "";
         const country = document.querySelectorAll('.countries #Categories .inner-wrap input:checked');
-        const product = document.querySelectorAll('.products #Categories .inner-wrap input:checked');
+        const model = document.querySelectorAll('.models #Categories .inner-wrap input:checked');
         const storage = document.querySelectorAll('.storages #Categories .inner-wrap input:checked');
 
         const countryArr = [];
-        const productArr = [];
+        const modelArr = [];
         const storageArr = [];
 
         country.forEach((c) => countryArr.push(c.value));
-        product.forEach((p) => productArr.push(p.value));
+        model.forEach((p) => modelArr.push(p.value));
         storage.forEach((s) => storageArr.push(s.value));
 
         console.log(countryArr);
-        console.log(productArr);
+        console.log(modelArr);
         console.log(storageArr);
+
+        countries_btn.textContent = countryArr[0];
+        model_btn.textContent = modelArr[0];
+        storages_btn.textContent = storageArr[0];
+
         // console.clear();
 
         drawTable({
             dataArr: dataArr,
             country: countryArr,
-            product: productArr,
+            model: modelArr,
             storage: storageArr,
             countries_filter: countries,
-            products_filter: product,
+            models_filter: model,
             storages_filter: storage
         });
     });
@@ -156,17 +174,17 @@ fetch(file_path).then(res => res.text()).then(data => {
 function drawTable({
     dataArr: dataArr,
     country: countryArr,
-    product: productArr,
+    model: modelArr,
     storage: storageArr,
     countries_filter: countries,
-    products_filter: product,
+    models_filter: model,
     storages_filter: storage
 }) {
 
     container_table.innerHTML = "";
     const table_data = {};
     const filteredData = dataArr.filter((row) => {
-        return countryArr.includes(row[0]) && productArr.includes(row[5].toLowerCase()) && storageArr.includes(row[6]);
+        return countryArr.includes(row[0]) && modelArr.includes(row[5].toLowerCase()) && storageArr.includes(row[6]);
     });
 
     const years = [...new Set(filteredData.map(row => row[1]).sort())];
@@ -239,7 +257,7 @@ function drawTable({
                         // arrow = down;
                     }
                     else {
-                        let per = ((data2 - data1) / data2 * 100).toFixed(0);
+                        let per = ((data2 - data1) / data2 * 100).toFixed(1);
                         td.textContent = per + "%";
                         if (per == 100) {
                             td.textContent = "-";
@@ -270,7 +288,7 @@ function drawTable({
                             // arrow = down;
                         }
                         else {
-                            let per = ((data2 - data1) / data2 * 100).toFixed(0);
+                            let per = ((data2 - data1) / data2 * 100).toFixed(1);
                             td.textContent = per + "%";
                             if (per == 100) {
                                 td.textContent = "-";
