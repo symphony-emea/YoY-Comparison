@@ -46,12 +46,17 @@ function addValuesToBtn({ arr: arr, btn: btn, div_class: div_class, div: div }) 
         check.classList.toggle('active');
     });
 
+    document.querySelector(div_class + " .inner-wrap").addEventListener('mouseleave', (e) => {
+        let check = document.querySelector(div_class + " .radios");
+        check.classList.remove('active');
+    });
+
     // btn.addEventListener('mouseover', (e) => {
     //     let check = document.querySelector(div_class + " .radios");
     //     check.classList.add('active');
     // });
 
-    // document.querySelector(div_class + " .radios").addEventListener('mouseleave', (e) => {
+    // document.querySelector(div_class + " .radios").addEventListener('mouseout', (e) => {
     //     let check = document.querySelector(div_class + " .radios");
     //     check.classList.remove('active');
     // });
@@ -74,26 +79,45 @@ function filterFunction(className) {
     }
 }
 //-------------------------------------------------------------------------------------------------------------//
-const file_path = "./no.csv";
+const file_path = "./data.csv";
 //-------------------------------------------------------------------------------------------------------------//
 fetch(file_path).then(res => res.text()).then(data => {
     const dataArr = data.trim().split("\n").map(row => row.replace("\r", "").split(",")).slice(1);
 
-    const countries = ["Norway", "Sweden"];
+    // const countries = ["Norway", "Sweden"];
+    const countries = [...new Set(dataArr.map(row => row[0]).sort())];
     addValuesToBtn({ arr: countries, btn: countries_btn, div_class: '.countries', div: countries_div });
 
-    const product = [...new Set(dataArr.map(row => row[3].toLowerCase()))];
+    const product = [...new Set(dataArr.map(row => row[5].toLowerCase()))];
     addValuesToBtn({ arr: product, btn: products_btn, div_class: '.products', div: products_div });
 
     products_btn.addEventListener('click', (e) => {
         const product = document.querySelectorAll('.products #Categories .inner-wrap input:checked');
         var val = product[0]?.value;
         if (val) {
-            const storage = [...new Set(dataArr.filter(row => row[3].toLowerCase() == val).map(row => row[4]).sort())];
+            const storage = [...new Set(dataArr.filter(row => row[5].toLowerCase() == val).map(row => row[6]).sort())];
             storages_div.innerHTML = "";
             addValuesToBtn({ arr: storage, btn: storages_btn, div_class: '.storages', div: storages_div });
         }
     });
+    products_div.addEventListener('mouseleave', (e) => {
+        const product = document.querySelectorAll('.products #Categories .inner-wrap input:checked');
+        var val = product[0]?.value;
+        if (val) {
+            const storage = [...new Set(dataArr.filter(row => row[5].toLowerCase() == val).map(row => row[6]).sort())];
+            storages_div.innerHTML = "";
+            addValuesToBtn({ arr: storage, btn: storages_btn, div_class: '.storages', div: storages_div });
+        }
+    });
+    // products_div.addEventListener('mouseover', (e) => {
+    //     const product = document.querySelectorAll('.products #Categories .inner-wrap input:checked');
+    //     var val = product[0]?.value;
+    //     if (val) {
+    //         const storage = [...new Set(dataArr.filter(row => row[5].toLowerCase() == val).map(row => row[6]).sort())];
+    //         storages_div.innerHTML = "";
+    //         addValuesToBtn({ arr: storage, btn: storages_btn, div_class: '.storages', div: storages_div });
+    //     }
+    // });
     // const storage = [...new Set(dataArr.map(row => row[4]).sort())];
     // addValuesToBtn({ arr: storage, btn: storages_btn, div_class: '.storages', div: storages_div });
 
@@ -142,16 +166,15 @@ function drawTable({
     container_table.innerHTML = "";
     const table_data = {};
     const filteredData = dataArr.filter((row) => {
-        return productArr.includes(row[3].toLowerCase()) && storageArr.includes(row[4]);
+        return countryArr.includes(row[0]) && productArr.includes(row[5].toLowerCase()) && storageArr.includes(row[6]);
     });
 
-    const years = [...new Set(filteredData.map(row => row[0]).sort())];
-    const last_year = years[years.length - 1];
-    const rest_years = years.slice(0, years.length - 1);
+    const years = [...new Set(filteredData.map(row => row[1]).sort())];
 
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", 'Nov', 'Dec'];
-
-    const yoyDelta = ["YoY Delta1", "YoY Delta2"];
+    //-------------------------------------------------------------------------------------------------------------//
+    const up = `<span class="material-symbols-outlined arrow">arrow_upward_alt</span>`;
+    const down = `<span class="material-symbols-outlined arrow">arrow_downward_alt</span>`;
     //-------------------------------------------------------------------------------------------------------------//
 
     years.forEach((year) => {
@@ -159,8 +182,8 @@ function drawTable({
         months.forEach((month) => {
             table_data[year][month] = 0;
             filteredData.forEach((row) => {
-                if (row[0] == year && row[1] == month) {
-                    table_data[year][month] = parseInt(row[7]);
+                if (row[1] == year && row[2] == month) {
+                    table_data[year][month] = parseInt(row[11]);
                 }
             });
         });
@@ -172,104 +195,102 @@ function drawTable({
         const table = document.createElement('table');
         const thead = document.createElement('thead');
         const tbody = document.createElement('tbody');
-
         const tr = document.createElement('tr');
         let th = document.createElement('th');
         th.textContent = "Month";
         tr.appendChild(th);
-        for (var year of rest_years) {
+        let count = 1;
+        for (let i = 0; i < years.length; i++) {
             th = document.createElement('th');
-            th.textContent = year;
+            th.textContent = years[i];
             tr.appendChild(th);
+            if (count % 2 == 0) {
+                th = document.createElement('th');
+                th.textContent = "YoY Delta%";
+                tr.appendChild(th);
+            }
+            if (years.length == i + 1 && years.length % 2 != 0) {
+                th = document.createElement('th');
+                th.textContent = "YoY Delta%";
+                tr.appendChild(th);
+            }
+            count++;
         }
-        th = document.createElement('th');
-        th.textContent = yoyDelta[0];
-        tr.appendChild(th);
-        th = document.createElement('th');
-        th.textContent = last_year;
-        tr.appendChild(th);
-        th = document.createElement('th');
-        th.textContent = yoyDelta[1];
-        tr.appendChild(th);
 
-        months.forEach((month) => {
-            const up = `<span class="material-symbols-outlined arrow">arrow_upward_alt</span>`;
-            const down = `<span class="material-symbols-outlined arrow">arrow_downward_alt</span>`;
+        months.forEach((month, index) => {
             const tr = document.createElement('tr');
             let td = document.createElement('td');
             td.textContent = month;
             tr.appendChild(td);
 
-            let dif = 0;
-            let old = 0;
+            count = 1;
             let color = "", arrow = "";
-            for (var year of rest_years) {
+            for (let i = 0; i < years.length; i++) {
                 td = document.createElement('td');
-                td.textContent = table_data[year][month];
-                if (table_data[year][month] > old) {
-                    dif = table_data[year][month] - old;
-                    color = "green";
-                    arrow = up;
-                } else if (table_data[year][month] < old) {
-                    dif = old - table_data[year][month];
-                    color = "red";
-                    arrow = down;
-                } else if (table_data[year][month] == old) {
-                    dif = 0;
-                    // color = "black";
-                    arrow = "";
-                }
-                else {
-                    dif = 0;
-                }
+                td.textContent = table_data[years[i]][month];
                 tr.appendChild(td);
-            }
-
-            // for (let i = 0; i < rest_years.length - 1; i++) {
-            //     td = document.createElement('td');
-            //     td.textContent = table_data[rest_years[i]][month];
-            //     console.log(table_data[rest_years[i]][month]);
-            //     tr.appendChild(td);
-            //     if (table_data[rest_years[i]][month] > table_data[rest_years[i + 1]][month]) {
-            //         dif = table_data[rest_years[i]][month] - table_data[rest_years[i + 1]][month];
-            //     } else if (table_data[rest_years[i]][month] < table_data[rest_years[i + 1]][month]) {
-            //         dif = table_data[rest_years[i + 1]][month] - table_data[rest_years[i]][month];
-            //     } else {
-            //         dif = 0;
-            //     }
-            // }
-
-            td = document.createElement('td');
-            td.style.position = "relative";
-            td.textContent = dif;
-            td.style.color = color;
-            td.innerHTML += arrow;
-            tr.appendChild(td);
-
-            td = document.createElement('td');
-            td.textContent = table_data[last_year][month];
-            tr.appendChild(td);
-
-            td = document.createElement('td');
-            td.style.position = "relative";
-            if (rest_years.length > 0) {
-                if (table_data[last_year][month] > table_data[rest_years[rest_years.length - 1]][month]) {
-                    td.textContent = table_data[last_year][month] - table_data[rest_years[rest_years.length - 1]][month];
-                    td.style.color = "green";
-                    td.innerHTML += up;
-                } else if (table_data[last_year][month] < table_data[rest_years[rest_years.length - 1]][month]) {
-                    td.textContent = table_data[rest_years[rest_years.length - 1]][month] - table_data[last_year][month];
-                    td.style.color = "red";
-                    td.innerHTML += down;
-                } else {
-                    td.textContent = 0;
+                if (count % 2 == 0) {
+                    td = document.createElement('td');
+                    let data1 = table_data[years[i - 1]][month];
+                    let data2 = table_data[years[i]][month];
+                    if (data2 == 0) {
+                        td.textContent = "-100%";
+                        color = "red";
+                        arrow = down;
+                    }
+                    else {
+                        let per = ((data2 - data1) / data2 * 100).toFixed(0);
+                        td.textContent = per + "%";
+                        if (per > 0) {
+                            color = "green";
+                            arrow = up;
+                        } else if (per < 0) {
+                            color = "red";
+                            arrow = down;
+                        } else {
+                            color = "black";
+                            arrow = "";
+                        }
+                    }
+                    td.style.position = "relative";
+                    td.style.color = color;
+                    td.innerHTML += arrow;
+                    tr.appendChild(td);
                 }
+                if (years.length == i + 1 && years.length % 2 != 0) {
+                    td = document.createElement('td');
+                    if (years.length > 1) {
+                        let data1 = table_data[years[i - 1]][month];
+                        let data2 = table_data[years[i]][month];
+                        if (data2 == 0) {
+                            td.textContent = "-100%";
+                            color = "red";
+                            arrow = down;
+                        }
+                        else {
+                            let per = ((data2 - data1) / data2 * 100).toFixed(0);
+                            td.textContent = per + "%";
+                            if (per > 0) {
+                                color = "green";
+                                arrow = up;
+                            } else if (per < 0) {
+                                color = "red";
+                                arrow = down;
+                            } else {
+                                color = "black";
+                                arrow = "";
+                            }
+                        }
+                    } else {
+                        td.textContent = "-";
+                    }
+                    td.style.position = "relative";
+                    td.style.color = color;
+                    td.innerHTML += arrow;
+                    tr.appendChild(td);
+                }
+                count++;
             }
-            else {
-                td.textContent = 0;
-            }
-            tr.appendChild(td);
-
             tbody.appendChild(tr);
         });
 
