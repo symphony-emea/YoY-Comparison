@@ -91,22 +91,23 @@ fetch(file_path).then(res => res.text()).then(data => {
     const model = [...new Set(dataArr.map(row => row[5].toLowerCase()))];
     addValuesToBtn({
         arr: model.map(m => {
-            let word_1 = "";
+            let word_1 = [];
             m.split(" ").forEach((word, index) => {
                 if (word.startsWith("i")) {
-                    word_1 += word + " ";
+                    word_1.push(word);
                 } else {
-                    word_1 += word.charAt(0).toUpperCase() + word.slice(1) + " ";
+                    word_1.push(word.charAt(0).toUpperCase() + word.slice(1));
                 }
             })
-            return word_1;
+            return word_1.join(" ");
 
         }), btn: model_btn, div_class: '.models', div: model_div
     });
 
     model_btn.addEventListener('click', (e) => {
-        const product = document.querySelectorAll('.models #Categories .inner-wrap input:checked');
-        var val = product[0]?.value;
+        const model = document.querySelectorAll('.models #Categories .inner-wrap input:checked');
+        var val = model[0]?.value.toLowerCase();
+        console.log(val);
         if (val) {
             const storage = [...new Set(dataArr.filter(row => row[5].toLowerCase() == val).map(row => row[6]).sort())];
             storages_div.innerHTML = "";
@@ -114,8 +115,9 @@ fetch(file_path).then(res => res.text()).then(data => {
         }
     });
     model_div.addEventListener('mouseleave', (e) => {
-        const product = document.querySelectorAll('.models #Categories .inner-wrap input:checked');
-        var val = product[0]?.value;
+        const model = document.querySelectorAll('.models #Categories .inner-wrap input:checked');
+        var val = model[0]?.value.toLowerCase();
+        console.log(val);
         if (val) {
             const storage = [...new Set(dataArr.filter(row => row[5].toLowerCase() == val).map(row => row[6]).sort())];
             storages_div.innerHTML = "";
@@ -152,16 +154,16 @@ fetch(file_path).then(res => res.text()).then(data => {
         console.log(modelArr);
         console.log(storageArr);
 
-        countries_btn.textContent = countryArr[0];
-        model_btn.textContent = modelArr[0];
-        storages_btn.textContent = storageArr[0];
+        countries_btn.textContent = "Country: " + countryArr[0];
+        model_btn.textContent = "Model: " + modelArr[0];
+        storages_btn.textContent = "Storage: " + storageArr[0];
 
         // console.clear();
 
         drawTable({
             dataArr: dataArr,
             country: countryArr,
-            model: modelArr,
+            model: modelArr.map(m => m.toLowerCase()),
             storage: storageArr,
             countries_filter: countries,
             models_filter: model,
